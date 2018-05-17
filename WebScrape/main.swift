@@ -4,11 +4,10 @@ import Foundation
 
 print("Hello, World!")
 
-var startURL: URL = URL(string: "https://fr-eu.wahoofitness.com")!
-var pagesToVisit: Set<URL> = [startURL]
+var pagesToVisit: Set<URL> = []
 var visitedPages: Set<URL> = []
 var sem = DispatchSemaphore(value: 0)
-var round = 1
+var firstRound = true
 
 func crawl() {
     guard let pageToVisit = pagesToVisit.popFirst() else {
@@ -57,9 +56,9 @@ func parse(document: String, url: URL) {
     }
     
     find()
-    if round == 1 {
+    if firstRound {
        collectLinks().forEach { pagesToVisit.insert($0) }
-        round = round + 1
+        firstRound = false
     }
     
 }
@@ -84,21 +83,15 @@ func findRegexMatchesIn(_ text: String) -> [String] {
     return results
 }
 
-let arg = CommandLine.arguments
-crawl()
-sem.wait()
-print("\n")
-
-for s in arg {
-//    Inputs
+for i in 0...CommandLine.arguments.count - 1 {
     print("\n")
-    print("NEXTURL----------------------")
-    print(s)
-    round = 1
-    pagesToVisit = [URL(string: s)!]
+    print(CommandLine.arguments[i])
+    firstRound = true
+    pagesToVisit = [URL(string: CommandLine.arguments[i])!]
     sem = DispatchSemaphore(value: 0)
     crawl()
     sem.wait()
+    print("\n")
 }
 
 
